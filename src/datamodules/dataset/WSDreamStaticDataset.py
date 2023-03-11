@@ -19,9 +19,6 @@ class WSDreamStaticDataset(DGLBuiltinDataset):
         Specifying the directory that will store the downloaded data
         or the directory that already stores the input data.
         Default: ~/.dgl/
-    save_dir : str
-        Directory to save the processed dataset.
-        Default: the value of `raw_dir`
     force_reload : bool
         Wether to reload the dataset. Default: False
     verbose : bool
@@ -31,15 +28,18 @@ class WSDreamStaticDataset(DGLBuiltinDataset):
         a transformed version. The :class:`~dgl.DGLGraph` object will be
         transformed before every access.
     """
-    _url = "http://gofile.me/6b1hr/692yCryu5"
+    _url = "https://github.com/icecity96/ServiceComputingDataset/raw/main/WSDream-static.zip"
     _sha1_str = 'e4de41e252483297fe3822af6f4718a783d1c04d'
     
-    def __init__(self, qos, density = 0.025, raw_dir=None, save_dir=None, force_reload=False, verbose=False, transform=None):
-        super(WSDreamStaticDataset, self).__init__(name="wsdream_static", url=self._url, raw_dir=raw_dir,
-                                                   save_dir=save_dir,   force_reload=force_reload,  verbose=verbose, transform=transform)
+    def __init__(self, qos, density = 0.025, raw_dir=None, force_reload=False, verbose=False, transform=None):
         assert qos in ["rt", "tp"], ("The QoS must be one of `rt` or `tp` in lower case!")
         self.qos = qos
         self.density = density
+        super(WSDreamStaticDataset, self).__init__(name="wsdream_static", url=self._url, raw_dir=raw_dir,
+                                                   force_reload=force_reload,  verbose=verbose, transform=transform)
+    
+    def download(self):
+        pass
     
     def process(self):
         if self.qos == "rt":
@@ -64,6 +64,7 @@ class WSDreamStaticDataset(DGLBuiltinDataset):
         
         
         # set qos record graph attributes.
+        # TODO: we can make code more clear by extracting the following snip as a seperate func `_random_split(self, graph, seed=234)`
         graph.edges['invoke'].data['qos'] = th.tensor(qos_value).view(-1, 1)
         num_qos_record = graph.num_edges('invoke')
         indices = list(range(num_qos_record))
@@ -110,12 +111,11 @@ class WSDreamStaticDataset(DGLBuiltinDataset):
         graph.apply_edges(lambda edges: {'e': (edges.src['contexts'] == edges.dst['contexts']).float()}, etype='impacts_uu')
         graph.apply_edges(lambda edges: {'e': (edges.src['contexts'] == edges.dst['contexts']).float()}, etype='impacts_ss')
         
-        self._g = graph
+        self.graph = graph
 
-    
     def __getitem__(self, idx):
         assert idx == 0, "This dataset has only one graph"
-        return self._g
+        return self.graph
     
     def __len__(self):
         return 1
@@ -124,7 +124,7 @@ class WSDreamStaticDataset(DGLBuiltinDataset):
         """save the graph list and the labels"""
         graph_path = os.path.join(self.save_path, f"wsdream-static-{self.qos}-{self.density}.bin")
         info_path = os.path.join(self.save_path, f"wsdream-static-{self.qos}-{self.density}.pkl")
-        save_graphs(str(graph_path), self._g)
+        save_graphs(str(graph_path), self.graph)
         save_info(str(info_path), {
             'num_users': self._num_users,
             'num_services': self._num_services,
@@ -142,9 +142,11 @@ class WSDreamStaticDataset(DGLBuiltinDataset):
         
         graphs, _ = load_graphs(str(graph_path))
         info = load_info(str(info_path))
-        
+        if self.verbose:
+            print(info)
+        self.graph = graphs[0]
     
     def has_cache(self):
-        pass    
-        
-        
+        graph_path = os.path.join(self.save_path, f"wsdream-static-{self.qos}-{self.density}.bin")
+        return os.path.exists(graph_path)    
+            
