@@ -43,7 +43,7 @@ class QoSGNNWSDreamDatamodule(pl.LightningDataModule):
         self.s_fanouts = s_fanouts
         self.batch_size = batch_size
         
-    def setup(self, stage: str):
+    def setup(self, stage: str = None):
         qos = self.dataset.graph.edges['invoke'].data['qos'].view(-1,).numpy()
         user, service = self.dataset.graph.all_edges(form='uv', etype=('user','invoke', 'service'))
         user, service = user.numpy(), service.numpy()
