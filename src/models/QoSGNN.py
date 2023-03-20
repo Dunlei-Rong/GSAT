@@ -17,9 +17,6 @@ class QoSGNN(pl.LightningModule):
      
     Parameters
     ----------
-    degree : int or tuple of int
-        Specify the sampled user-graph/service-graph average degree. If `int` is provided
-        
     num_user : int
         Number of users
         
@@ -42,11 +39,10 @@ class QoSGNN(pl.LightningModule):
     weight_decay : float
         Default `1e-4`
     """
-    def __init__(self, degree, num_user, num_service, edge_feat, node_feat, lr, weight_decay) -> None:
+    def __init__(self,  num_user, num_service, edge_feat, node_feat, lr, weight_decay) -> None:
         super().__init__()
         self.eval_metric()
         
-        self.u_k, self.s_k = expand_as_pair(degree)
         self.num_user = num_user
         self.num_service = num_service
         self.u_e_feat_dim, self.s_e_feat_dim = expand_as_pair(edge_feat)
@@ -83,7 +79,7 @@ class QoSGNN(pl.LightningModule):
     
     
         
-    def training_step(self, batch):
+    def training_step(self, batch, batch_idx):
         ug, sg, qr = batch["ug"], batch["sg"], batch["qr"]
         user_idx, service_idx, qos_value = qr
         u_src_nids, u_dst_nids, u_mfgs = ug
@@ -97,7 +93,7 @@ class QoSGNN(pl.LightningModule):
         service_idx_mapped = th.tensor([s_nid_map[item.item()] for item in service_idx]).type_as(service_idx)
         
         u_feats, s_feats = self.user_embed(u_mfgs[0].srcdata[dgl.NID]), self.service_embed(s_mfgs[0].srcdata[dgl.NID])
-        u_e_feats, s_e_feats = ug.edata["impacts_uu"], sg.edata["impacts_ss"]
+        u_e_feats, s_e_feats = u_mfgs[0].edata["e"], s_mfgs[0].edata["e"]
         
         u_dst_feats = self.user_transformerConv(u_mfgs[0], u_feats, u_e_feats)
         u_dst_feats = u_dst_feats.view(u_dst_feats.size(0), -1)
@@ -120,7 +116,7 @@ class QoSGNN(pl.LightningModule):
         self.log("train/loss", loss, on_step=True, on_epoch=True, prog_bar=True)
         return loss
     
-    def validation_step(self, batch):
+    def validation_step(self, batch, batch_idx):
         user_idx, service_idx, qos_value = batch
         user_feats, service_feats = self.user_embeds_f[user_idx], self.service_embeds_f[service_idx]
         
@@ -131,7 +127,7 @@ class QoSGNN(pl.LightningModule):
         mae = self._val_MAE(predicted_qos, qos_value)
         self.log("val/mae", mae, on_step=False, on_epoch=True, prog_bar=True)
     
-    def test_step(self, batch):
+    def test_step(self, batch, batch_idx):
         user_idx, service_idx, qos_value = batch
         user_feats, service_feats = self.user_embeds_f[user_idx], self.service_embeds_f[service_idx]
         

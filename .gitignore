@@ -145,7 +145,7 @@ logs/
 wandb/
 .env
 .autoenv
-
+lightning_logs/
 
 # Service Computing Lib
 notebooks/data_format.ipynb
