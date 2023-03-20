@@ -176,6 +176,8 @@ class TransformerConv(nn.Module):
         
         rst = graph.dstdata["agg_u"]
         
+        rst = graph.dstdata["ft"] + rst
+        
         if get_attention:
             return rst, graph.edata["sa"]
         else:

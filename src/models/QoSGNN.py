@@ -4,6 +4,7 @@ import pytorch_lightning as pl
 
 import torch as th
 import torch.nn as nn
+import torch.nn.functional as F
 
 import dgl
 from dgl.utils import expand_as_pair
@@ -64,18 +65,20 @@ class QoSGNN(pl.LightningModule):
         
         # TODO: Do we really need to stack two layers? May be a new experiment?
         self.user_transformerConv = TransformerConv(self.u_n_dim, self.u_n_dim, num_heads=1, edge_feats=self.u_e_feat_dim)
+        self.user_transformerConv2 = TransformerConv(self.u_n_dim, self.u_n_dim, num_heads=1, edge_feats=self.u_e_feat_dim)
         
         self.service_transformerConv = TransformerConv(self.s_n_dim, self.s_n_dim, num_heads=1, edge_feats=self.s_e_feat_dim)
-        
+        self.service_transformerConv2 = TransformerConv(self.s_n_dim, self.s_n_dim, num_heads=1, edge_feats=self.s_e_feat_dim)
+
         self.qos_scorer = nn.Sequential(
             nn.Linear(self.u_n_dim + self.s_n_dim, int((self.u_n_dim + self.s_n_dim)/2)),
             nn.ReLU(inplace=True),
-            nn.Linear(int((self.u_n_dim + self.s_n_dim)/2), 1)
+            nn.Linear(int((self.u_n_dim + self.s_n_dim)/2), 1),
+            nn.ReLU(inplace=True)
         )
         
         self.register_buffer('user_embeds_f', self.user_embed.weight.data.clone().detach())
         self.register_buffer('service_embeds_f', self.service_embed.weight.data.clone().detach())
-        #self.user_embeds_f, self.service_embeds_f = self.user_embed.weight.data.clone().detach(), self.service_embed.weight.data.clone().detach()
     
     
         
@@ -92,14 +95,31 @@ class QoSGNN(pl.LightningModule):
         user_idx_mapped = th.tensor([u_nid_map[item.item()] for item in user_idx]).type_as(user_idx)
         service_idx_mapped = th.tensor([s_nid_map[item.item()] for item in service_idx]).type_as(service_idx)
         
+        # input feats for first layer
         u_feats, s_feats = self.user_embed(u_mfgs[0].srcdata[dgl.NID]), self.service_embed(s_mfgs[0].srcdata[dgl.NID])
         u_e_feats, s_e_feats = u_mfgs[0].edata["e"], s_mfgs[0].edata["e"]
         
-        u_dst_feats = self.user_transformerConv(u_mfgs[0], u_feats, u_e_feats)
+        u_feats = self.user_transformerConv(u_mfgs[0], u_feats, u_e_feats)
+        u_feats = F.relu(u_feats).view(u_feats.size(0), -1)
+        u_e_feats = u_mfgs[1].edata["e"]
+        u_dst_feats = self.user_transformerConv2(u_mfgs[1], u_feats, u_e_feats)
         u_dst_feats = u_dst_feats.view(u_dst_feats.size(0), -1)
+        u_dst_feats = F.relu(u_dst_feats)
         
-        s_dst_feats = self.service_transformerConv(s_mfgs[0], s_feats, s_e_feats)
+        # u_dst_feats = self.user_transformerConv(u_mfgs[0], u_feats, u_e_feats)
+        # u_dst_feats = u_dst_feats.view(u_dst_feats.size(0), -1)
+        # u_dst_feats = F.relu(u_dst_feats)
+        
+        s_feats = self.service_transformerConv(s_mfgs[0], s_feats, s_e_feats)
+        s_feats = F.relu(s_feats).view(s_feats.size(0), -1)
+        s_e_feats = s_mfgs[1].edata["e"]
+        s_dst_feats = self.service_transformerConv(s_mfgs[1], s_feats, s_e_feats)
         s_dst_feats = s_dst_feats.view(s_dst_feats.size(0), -1)
+        s_dst_feats = F.relu(s_dst_feats)
+        
+        # s_dst_feats = self.service_transformerConv(s_mfgs[0], s_feats, s_e_feats)
+        # s_dst_feats = s_dst_feats.view(s_dst_feats.size(0), -1)
+        # s_dst_feats = F.relu(s_dst_feats)
         
         self.user_embeds_f[u_dst_nids] = u_dst_feats.clone().detach()
         self.service_embeds_f[s_dst_nids] = s_dst_feats.clone().detach()

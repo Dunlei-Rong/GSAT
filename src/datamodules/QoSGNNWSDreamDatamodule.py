@@ -62,7 +62,8 @@ class QoSGNNWSDreamDatamodule(pl.LightningDataModule):
         test_mask = self.dataset.graph.edges['invoke'].data['test_edge_mask'].view(-1,).numpy()
         test_idx = np.nonzero(test_mask == 1)
         self.user_test, self.service_test, self.qos_test = user[test_idx], service[test_idx], qos[test_idx]
-    
+
+        print(len(self.qos_train), len(self.qos_valid), len(self.qos_test))
     def train_dataloader(self):
         assert len(self.user_train) == len(self.service_train) == len(self.qos_train)
         # NOTE: We need three dataloaders: sampled user graph dataloader, sampled service graph dataloader and qos record dataloader.
@@ -88,5 +89,5 @@ class QoSGNNWSDreamDatamodule(pl.LightningDataModule):
     
     def test_dataloader(self):
         assert len(self.user_test) == len(self.service_test) == len(self.qos_test)
-        qos_dataloader = DataLoader(zip(list(self.user_test, self.service_valid, self.qos_test)), shuffle=False, batch_size=self.batch_size)
+        qos_dataloader = DataLoader(list(zip(self.user_test, self.service_test, self.qos_test)), shuffle=False, batch_size=self.batch_size)
         return qos_dataloader
