@@ -46,8 +46,15 @@ class QoSGNN(pl.LightningModule):
         
         self.num_user = num_user
         self.num_service = num_service
-        self.u_e_feat_dim, self.s_e_feat_dim = expand_as_pair(edge_feat)
-        self.u_n_dim, self.s_n_dim = expand_as_pair(node_feat)
+        if isinstance(edge_feat, int):
+            self.u_e_feat_dim, self.s_e_feat_dim = edge_feat, edge_feat
+        else:
+            self.u_e_feat_dim, self.s_e_feat_dim = edge_feat[0], edge_feat[1]
+
+        if isinstance(node_feat, int): 
+            self.u_n_dim, self.s_n_dim = node_feat, node_feat
+        else:
+            self.u_n_dim, self.s_n_dim = node_feat[0], node_feat[1]
         
         self.lr = lr
         self.weight_decay = weight_decay

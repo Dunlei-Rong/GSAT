@@ -5,7 +5,7 @@ from omegaconf import DictConfig
 # recursively searches for `.env` in all folders starting from work dir
 
 
-@hydra.main(config_path="configs/", config_name="config.yaml")
+@hydra.main(version_base="1.3", config_path="configs/", config_name="config.yaml")
 def main(config: DictConfig):
 
     # Imports should be nested inside @hydra.main to optimize tab completion

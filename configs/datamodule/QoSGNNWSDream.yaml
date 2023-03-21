@@ -1,11 +1,11 @@
-_target_: src.datamodule.QoSGNNWSDreamDatamodule.QoSGNNWSDreamDatamodule
+_target_: src.datamodules.QoSGNNWSDreamDatamodule.QoSGNNWSDreamDatamodule
 
 qos: "rt"
 u_fanouts: [5, 25]
 s_fanouts: [20, 45]
 batch_size: 1024
 density: 0.025
-raw_dir: null
+raw_dir: "data/WSDream_static"
 force_reload: false
 verbose: false
 transform: null
