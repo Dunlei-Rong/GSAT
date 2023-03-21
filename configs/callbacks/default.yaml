@@ -17,5 +17,5 @@ early_stopping:
   min_delta: 0.0001 # minimum change in the monitored metric needed to qualify as an improvement
 
 model_summary:
-  _target_: lightning.pytorch.callbacks.RichModelSummary
+  _target_: pytorch_lightning.callbacks.RichModelSummary
   max_depth: 1 # the maximum depth of layer nesting that the summary will include
