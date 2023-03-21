@@ -5,6 +5,8 @@ import torch as th
 import dgl
 from dgl.data import DGLBuiltinDataset
 from dgl.data.utils import save_graphs, save_info, load_graphs, load_info
+from clearml import Dataset
+
 
 class WSDreamStaticDataset(DGLBuiltinDataset):
     """ The most popular (static) QoS prediction dataset.
@@ -38,8 +40,12 @@ class WSDreamStaticDataset(DGLBuiltinDataset):
         super(WSDreamStaticDataset, self).__init__(name="wsdream_static", url=self._url, raw_dir=raw_dir,
                                                    force_reload=force_reload,  verbose=verbose, transform=transform)
     
+    
     def download(self):
-        pass
+        """ FIXME: HIT-ICES inter implement using clearML. When Publish Code, please modify this part!
+        """
+        dataset = Dataset.get(dataset_id="586f4c66aa5f43e68dccf046819d6a86")
+        dataset.get_mutable_local_copy(target_folder=self.save_dir)
     
     def process(self):
         if self.qos == "rt":
@@ -124,6 +130,9 @@ class WSDreamStaticDataset(DGLBuiltinDataset):
         """save the graph list and the labels"""
         graph_path = os.path.join(self.save_path, f"wsdream-static-{self.qos}-{self.density}.bin")
         info_path = os.path.join(self.save_path, f"wsdream-static-{self.qos}-{self.density}.pkl")
+        
+        
+        
         save_graphs(str(graph_path), self.graph)
         save_info(str(info_path), {
             'num_users': self._num_users,
@@ -135,6 +144,7 @@ class WSDreamStaticDataset(DGLBuiltinDataset):
             'num_valid_records': self._num_valid_qos_record,
             'num_test_records': self._num_test_qos_record
         })
+        
     
     def load(self):
         graph_path = os.path.join(self.save_path, f"wsdream-static-{self.qos}-{self.density}.bin")
@@ -149,4 +159,4 @@ class WSDreamStaticDataset(DGLBuiltinDataset):
     def has_cache(self):
         graph_path = os.path.join(self.save_path, f"wsdream-static-{self.qos}-{self.density}.bin")
         return os.path.exists(graph_path)    
-            
+           

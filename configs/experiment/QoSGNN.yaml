@@ -1,0 +1,30 @@
+# @package _global_
+
+# to execute this experiment run:
+# python run.py experiment=example_simple.yaml
+
+defaults:
+  - override /trainer: default.yaml # choose trainer from 'configs/trainer/'
+  - override /model: QoSGNN.yaml
+  - override /datamodule: QoSGNNWSDream.yaml
+  - override /callbacks: default.yaml
+  - override /logger: tensorboard.yaml
+
+# all parameters below will be merged with parameters from default configurations set above
+# this allows you to overwrite only specified parameters
+
+seed: 12345
+
+project_name: "Service Computing"
+experiment_name: "QoSGNN"
+
+trainer:
+  min_epochs: 10
+  max_epochs: 100
+  gradient_clip_val: 0.5
+
+
+
+logger:
+  tensorboard:
+    name: "QoSGNN"

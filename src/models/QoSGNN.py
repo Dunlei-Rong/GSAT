@@ -106,9 +106,6 @@ class QoSGNN(pl.LightningModule):
         u_dst_feats = u_dst_feats.view(u_dst_feats.size(0), -1)
         u_dst_feats = F.relu(u_dst_feats)
         
-        # u_dst_feats = self.user_transformerConv(u_mfgs[0], u_feats, u_e_feats)
-        # u_dst_feats = u_dst_feats.view(u_dst_feats.size(0), -1)
-        # u_dst_feats = F.relu(u_dst_feats)
         
         s_feats = self.service_transformerConv(s_mfgs[0], s_feats, s_e_feats)
         s_feats = F.relu(s_feats).view(s_feats.size(0), -1)
@@ -117,9 +114,6 @@ class QoSGNN(pl.LightningModule):
         s_dst_feats = s_dst_feats.view(s_dst_feats.size(0), -1)
         s_dst_feats = F.relu(s_dst_feats)
         
-        # s_dst_feats = self.service_transformerConv(s_mfgs[0], s_feats, s_e_feats)
-        # s_dst_feats = s_dst_feats.view(s_dst_feats.size(0), -1)
-        # s_dst_feats = F.relu(s_dst_feats)
         
         self.user_embeds_f[u_dst_nids] = u_dst_feats.clone().detach()
         self.service_embeds_f[s_dst_nids] = s_dst_feats.clone().detach()

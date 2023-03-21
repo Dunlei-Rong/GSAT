@@ -1,0 +1,8 @@
+_target_: src.models.QoSGNN.QoSGNN
+
+num_user: 339
+num_service: 5825
+edge_feat: [2,3]
+node_feat: [64, 64]
+lr: 0.001
+weight_decay: 0.0001
