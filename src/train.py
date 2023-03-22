@@ -27,7 +27,7 @@ def train(config: DictConfig) -> Optional[float]:
         Optional[float]: Metric score for hyperparameter optimization.
     """
     # 
-    task = Task.init(project_name=config.project_name, task_name=config.experiment_name)
+    task = Task.init(project_name=config.project_name, task_name=config.experiment_name, tags=config.tags, auto_connect_frameworks={'pytorch': False, 'tensorboard': True})
 
     # Set seed for random number generators in pytorch, numpy and python.random
     if "seed" in config:
@@ -97,6 +97,7 @@ def train(config: DictConfig) -> Optional[float]:
     # Print path to best checkpoint
     log.info(f"Best checkpoint path:\n{trainer.checkpoint_callback.best_model_path}")
 
+    task.update_output_model(model_path=f"{trainer.checkpoint_callback.best_model_path}")
     # Return metric score for hyperparameter optimization
     optimized_metric = config.get("optimized_metric")
     if optimized_metric:

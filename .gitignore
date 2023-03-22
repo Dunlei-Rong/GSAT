@@ -151,3 +151,7 @@ lightning_logs/
 notebooks/data_format.ipynb
 
 config_tree.txt
+
+checkpoints/
+
+tensorboard/

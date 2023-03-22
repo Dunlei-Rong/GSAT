@@ -17,10 +17,11 @@ seed: 12345
 
 project_name: "Service Computing"
 experiment_name: "QoSGNN"
+tags: ["Ours"]
 
 trainer:
-  min_epochs: 10
-  max_epochs: 100
+  min_epochs: 5
+  max_epochs: 10
   gradient_clip_val: 0.5
 
 

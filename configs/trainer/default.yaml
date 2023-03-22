@@ -5,6 +5,3 @@ gpus: 1
 
 min_epochs: 1
 max_epochs: 10
-
-progress_bar_refresh_rate: 5
-resume_from_checkpoint: null
