@@ -1,0 +1,17 @@
+_target_: src.models.GSAT.GSAT
+
+dataset: Mashup
+data_dir: ${data_dir}/Mashup
+lr: 5e-4
+# 5e-5
+head_num: 12
+weight_decay: 1e-4
+embedding_model: 'openai'
+fine_tuning: True
+topk: [1, 5, 10]
+RSGAP: True
+
+# lr: 8e-5, weight_decay: 1e-3, batch_size: 64是目前的sota
+#lr: 5e-4
+#head_num: 12
+#weight_decay: 1e-3
